@@ -11,16 +11,14 @@ import github3
 
 MAX_URL_LEN = 150e3  # Size threshold above which a gist is created
 
-
-def display(contents, domain='http://geojson.io/', force_gist=False):
-    url = geojsonio_url(contents, domain, force_gist)
+def display(contents, domain='http://geojson.io/'):
+    url = geojsonio_url(contents, domain)
     webbrowser.open(url)
     return url
 # display() used to be called to_geojsonio. Keep it around for now...
 to_geojsonio = display
 
-
-def geojsonio_url(contents, domain='http://geojson.io/', force_gist=False):
+def geojsonio_url(contents, domain='http://geojson.io/'):
     """
     Returns the URL to open given the domain and contents
 
@@ -40,14 +38,13 @@ def geojsonio_url(contents, domain='http://geojson.io/', force_gist=False):
 
     """
     contents = _parse_contents(contents)
-    if len(contents) <= MAX_URL_LEN and not force_gist:
+    if len(contents) <= MAX_URL_LEN:
         url = _data_url(domain, contents)
     else:
         gist = _create_gist(contents)
         url = _gist_url(domain, gist.id)
 
     return url
-
 
 def _parse_contents(contents):
     """
@@ -68,7 +65,7 @@ def _parse_contents(contents):
     else:
         try:
             feature_iter = iter(contents)
-        except TypeError:
+        except TypeError, e:
             raise ValueError('Unknown type for input')
 
         features = []
@@ -77,9 +74,8 @@ def _parse_contents(contents):
                 raise ValueError('Unknown type at index {}'.format(i))
             features.append(_geo_to_feature(f))
 
-    data = {'type': 'FeatureCollection', 'features': features}
+    data= {'type': 'FeatureCollection', 'features': features}
     return json.dumps(data)
-
 
 def _geo_to_feature(ob):
     """
@@ -98,7 +94,6 @@ def _geo_to_feature(ob):
         return {'type': 'Feature',
                 'geometry': mapping}
 
-
 def _create_gist(contents, description='', filename='data.geojson'):
     """
     Create and return an anonymous gist with a single file and specified
@@ -111,12 +106,10 @@ def _create_gist(contents, description='', filename='data.geojson'):
 
     return gist
 
-
 def _data_url(domain, contents):
     url = (domain + '#data=data:application/json,' +
            urllib.quote(contents))
     return url
-
 
 def _gist_url(domain, gist_id):
     url = (domain + '#id=gist:/{}'.format(gist_id))
@@ -128,20 +121,20 @@ def main():
         description='Quickly visualize GeoJSON data on geojson.io')
 
     parser.add_argument('-p', '--print',
-                        dest='do_print',
-                        action='store_true',
-                        help='print the URL')
+        dest='do_print',
+        action='store_true',
+        help='print the URL')
 
     parser.add_argument('-d', '--domain',
-                        dest='domain',
-                        default='http://geojson.io',
-                        help='Alternate URL instead of http://geojson.io/')
+        dest='domain',
+        default='http://geojson.io',
+        help='Alternate URL instead of http://geojson.io/')
 
     parser.add_argument('filename',
-                        nargs='?',
-                        type=argparse.FileType('r'),
-                        default=sys.stdin,
-                        help="The file to send to geojson.io")
+        nargs='?',
+        type=argparse.FileType('r'),
+        default=sys.stdin,
+        help="The file to send to geojson.io")
 
     args = parser.parse_args()
 
@@ -154,3 +147,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
